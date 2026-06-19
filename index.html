@@ -259,7 +259,17 @@
     modelUsed.textContent = "";
 
     try {
-      const res = await fetch("https://neuro-lime.vercel.app", {
+      // Replace this:
+const res = await fetch("/api/chat", { ... })
+
+// With this (direct Groq, needs your key in the browser — dev only!):
+const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer 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"  // ⚠️ dev only, never ship this
+  },
+  ...
+})
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
