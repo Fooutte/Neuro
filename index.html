@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Groq API Tester</title>
+  <style>
+    :root {
+      --bg:      #0d0f14;
+      --surface: #13161f;
+      --border:  #1e2436;
+      --accent:  #00e5ff;
+      --accent2: #7b2fff;
+      --text:    #cdd6f4;
+      --muted:   #6c7086;
+      --success: #a6e3a1;
+      --error:   #f38ba8;
+      --radius:  6px;
+      --mono:    "JetBrains Mono", "Fira Code", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    header p {
+      color: var(--muted);
+      margin-top: .3rem;
+      font-size: .75rem;
+      letter-spacing: .05em;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: .4rem;
+    }
+
+    select, textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: .5rem .75rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    select:focus, textarea:focus, input:focus {
+      border-color: var(--accent);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      margin-bottom: .75rem;
+    }
+
+    .field { margin-bottom: .75rem; }
+    .field:last-child { margin-bottom: 0; }
+
+    button#send {
+      width: 100%;
+      max-width: 720px;
+      padding: .7rem;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      color: #000;
+      font-family: var(--mono);
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+
+    button#send:disabled { opacity: .4; cursor: not-allowed; }
+    button#send:not(:disabled):hover { opacity: .85; }
+
+    #response-block {
+      width: 100%;
+      max-width: 720px;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    .label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .4rem;
+    }
+
+    .label-row span { font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+    .label-row .meta { color: var(--accent); font-size: .65rem; }
+
+    #output {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: var(--text);
+      min-height: 80px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    #output.error { color: var(--error); border-color: var(--error); }
+    #output.ok    { color: var(--success); }
+
+    .spinner {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 2px solid var(--accent);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      margin-right: .4rem;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .usage-bar {
+      display: flex;
+      gap: 1rem;
+      margin-top: .6rem;
+      font-size: .68rem;
+      color: var(--muted);
+    }
+
+    .usage-bar span b { color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>// Groq API Tester</h1>
+  <p>POST → /api/chat &nbsp;·&nbsp; Vercel Serverless Proxy</p>
+</header>
+
+<!-- Config -->
+<div class="card">
+  <div class="row">
+    <div class="field">
+      <label>Model</label>
+      <select id="model">
+        <option value="llama3-8b-8192">LLaMA 3 · 8B</option>
+        <option value="llama3-70b-8192">LLaMA 3 · 70B</option>
+        <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+        <option value="gemma2-9b-it">Gemma 2 · 9B</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Temperature (0–2)</label>
+      <input type="text" id="temperature" value="0.7" />
+    </div>
+  </div>
+  <div class="field">
+    <label>System Prompt (optional)</label>
+    <textarea id="system" rows="2" placeholder="You are a helpful assistant."></textarea>
+  </div>
+</div>
+
+<!-- Message -->
+<div class="card">
+  <div class="field">
+    <label>User Message</label>
+    <textarea id="message" rows="4" placeholder="Ask anything…"></textarea>
+  </div>
+</div>
+
+<button id="send">Send Request</button>
+
+<!-- Response -->
+<div id="response-block">
+  <div class="label-row">
+    <span>Response</span>
+    <span class="meta" id="model-used"></span>
+  </div>
+  <div id="output"></div>
+  <div class="usage-bar" id="usage"></div>
+</div>
+
+<script>
+  const btn    = document.getElementById("send");
+  const output = document.getElementById("output");
+  const block  = document.getElementById("response-block");
+  const usageEl= document.getElementById("usage");
+  const modelUsed = document.getElementById("model-used");
+
+  btn.addEventListener("click", async () => {
+    const message = document.getElementById("message").value.trim();
+    if (!message) return;
+
+    const model       = document.getElementById("model").value;
+    const system      = document.getElementById("system").value.trim();
+    const temperature = parseFloat(document.getElementById("temperature").value) || 0.7;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Sending…';
+    block.style.display = "block";
+    output.className = "";
+    output.textContent = "Waiting for response…";
+    usageEl.innerHTML = "";
+    modelUsed.textContent = "";
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model,
+          system: system || undefined,
+          temperature,
+          messages: [{ role: "user", content: message }],
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        output.className = "error";
+        output.textContent = `ERROR ${res.status}\n\n${data.error || JSON.stringify(data, null, 2)}`;
+      } else {
+        output.className = "ok";
+        output.textContent = data.content;
+        modelUsed.textContent = data.model;
+
+        if (data.usage) {
+          usageEl.innerHTML = `
+            <span>Prompt: <b>${data.usage.prompt_tokens}</b> tokens</span>
+            <span>Completion: <b>${data.usage.completion_tokens}</b> tokens</span>
+            <span>Total: <b>${data.usage.total_tokens}</b> tokens</span>
+          `;
+        }
+      }
+    } catch (err) {
+      output.className = "error";
+      output.textContent = `Network error:\n${err.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Send Request";
+    }
+  });
+</script>
+
+</body>
+</html>
