@@ -259,7 +259,7 @@
     modelUsed.textContent = "";
 
     try {
-      const res = await fetch("https://neuro-lime.vercel.app/api/chat", {
+      const res = await fetch("https://neuro-lime.vercel.app", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -268,8 +268,8 @@
   })
 });
 
-const data = await res.json();
-console.log(data.content); // ← the AI's reply
+      const data = await res.json();
+        console.log(data.content); // ← the AI's reply
 
       if (!res.ok) {
         output.className = "error";
