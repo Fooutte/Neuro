@@ -259,18 +259,17 @@
     modelUsed.textContent = "";
 
     try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model,
-          system: system || undefined,
-          temperature,
-          messages: [{ role: "user", content: message }],
-        }),
-      });
+      const res = await fetch("https://neuro-lime.vercel.app/api/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    messages: [{ role: "user", content: "Hello!" }],
+    model: "llama3-8b-8192"
+  })
+});
 
-      const data = await res.json();
+const data = await res.json();
+console.log(data.content); // ← the AI's reply
 
       if (!res.ok) {
         output.className = "error";
